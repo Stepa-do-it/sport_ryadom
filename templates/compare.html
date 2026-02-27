@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Сравнение объектов - Спорт рядом</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .back-link {
+            margin-bottom: 20px;
+        }
+        .back-link a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .compare-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .compare-table th {
+            background: #3498db;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            width: 200px;
+        }
+        .compare-table td {
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
+            vertical-align: top;
+        }
+        .compare-table tr:hover {
+            background: #f8f9fa;
+        }
+        .service-tag {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            margin: 2px;
+        }
+        .availability-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        .available-full {
+            background: #27ae60;
+            color: white;
+        }
+        .available-partial {
+            background: #f39c12;
+            color: white;
+        }
+        .available-none {
+            background: #e74c3c;
+            color: white;
+        }
+        .facility-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .map-link {
+            color: #3498db;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="back-link">
+            <a href="/">← Назад к поиску</a>
+        </div>
+
+        <h1>📊 Сравнение объектов</h1>
+
+        <table class="compare-table">
+            <tr>
+                <th>Характеристика</th>
+                {% for facility in facilities %}
+                <td class="facility-name">{{ facility.name }}</td>
+                {% endfor %}
+            </tr>
+
+            <tr>
+                <th>📍 Адрес</th>
+                {% for facility in facilities %}
+                <td>{{ facility.address or 'не указан' }}</td>
+                {% endfor %}
+            </tr>
+
+            <tr>
+                <th>🏘 Округ</th>
+                {% for facility in facilities %}
+                <td>{{ facility.adm_area or 'не указан' }}</td>
+                {% endfor %}
+            </tr>
+
+            <tr>
+                <th>🏘 Район</th>
+                {% for facility in facilities %}
+                <td>{{ facility.district or 'не указан' }}</td>
+                {% endfor %}
+            </tr>
+
+            <tr>
+                <th>⚽ Виды спорта</th>
+                {% for facility in facilities %}
+                <td>
+                    {% if facility.services %}
+                        {% for sport in facility.services %}
+                        <span class="service-tag">{{ sport }}</span>
+                        {% endfor %}
+                    {% else %}
+                        не указано
+                    {% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+
+            <tr>
+                <th>♿ Для колясочников</th>
+                {% for facility in facilities %}
+                <td>
+                    {% if facility.available_k == 'полностью' %}
+                        <span class="availability-badge available-full">✅ Полностью</span>
+                    {% elif facility.available_k == 'частично' %}
+                        <span class="availability-badge available-partial">⚠️ Частично</span>
+                    {% elif facility.available_k == 'недоступно' %}
+                        <span class="availability-badge available-none">❌ Недоступно</span>
+                    {% else %}
+                        не указано
+                    {% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+
+            <tr>
+                <th>♿ Для слабовидящих</th>
+                {% for facility in facilities %}
+                <td>
+                    {% if facility.available_z == 'полностью' %}
+                        <span class="availability-badge available-full">✅ Полностью</span>
+                    {% elif facility.available_z == 'частично' %}
+                        <span class="availability-badge available-partial">⚠️ Частично</span>
+                    {% elif facility.available_z == 'недоступно' %}
+                        <span class="availability-badge available-none">❌ Недоступно</span>
+                    {% else %}
+                        не указано
+                    {% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+
+            <tr>
+                <th>🕒 Часы работы</th>
+                {% for facility in facilities %}
+                <td>{{ facility.working_hours|safe }}</td>
+                {% endfor %}
+            </tr>
+
+            <tr>
+                <th>📞 Телефон</th>
+                {% for facility in facilities %}
+                <td>{{ facility.phone or 'не указан' }}</td>
+                {% endfor %}
+            </tr>
+
+            <tr>
+                <th>📧 Email</th>
+                {% for facility in facilities %}
+                <td>{{ facility.email or 'не указан' }}</td>
+                {% endfor %}
+            </tr>
+
+            <tr>
+                <th>🌐 Сайт</th>
+                {% for facility in facilities %}
+                <td>
+                    {% if facility.website %}
+                        <a href="{{ facility.website }}" target="_blank">{{ facility.website }}</a>
+                    {% else %}
+                        не указан
+                    {% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+
+            <tr>
+                <th>🗺 Карта</th>
+                {% for facility in facilities %}
+                <td>
+                    {% if facility.latitude and facility.longitude %}
+                        <a class="map-link" href="https://www.openstreetmap.org/?mlat={{ facility.latitude }}&mlon={{ facility.longitude }}#map=17/{{ facility.latitude }}/{{ facility.longitude }}" target="_blank">
+                            Показать на карте
+                        </a>
+                    {% else %}
+                        нет координат
+                    {% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+        </table>
+    </div>
+</body>
+</html>
