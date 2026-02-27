@@ -1,0 +1,290 @@
+ <!DOCTYPE html>
+<html>
+<head>
+    <title>{{ facility.name }} - Спорт рядом</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        .back-link {
+            margin-bottom: 20px;
+        }
+        .back-link a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+        .info-section {
+            margin: 25px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .info-section h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 8px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #7f8c8d;
+        }
+        .info-value {
+            color: #34495e;
+        }
+        .services-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .service-tag {
+            background: #3498db;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+        .availability-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        .available-full {
+            background: #27ae60;
+            color: white;
+        }
+        .available-partial {
+            background: #f39c12;
+            color: white;
+        }
+        .available-none {
+            background: #e74c3c;
+            color: white;
+        }
+        .map-container {
+            margin: 25px 0;
+            height: 300px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .working-hours {
+            white-space: pre-line;
+            line-height: 1.6;
+        }
+        .contact-info {
+            margin: 10px 0;
+        }
+        .contact-info a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .contact-info a:hover {
+            text-decoration: underline;
+        }
+
+
+        .working-hours {
+            line-height: 1.6;
+        }
+
+    </style>
+</head>
+<body>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div style="max-width: 800px; margin: 20px auto;">
+                {% for message in messages %}
+                    <div style="background: #d4edda; color: #155724; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #c3e6cb;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="container">
+        <div class="back-link">
+            <a href="/">← Назад к списку</a>
+        </div>
+
+        <h1>{{ facility.name }}</h1>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1>{{ facility.name }}</h1>
+            {% if current_user.is_authenticated %}
+                <form method="POST" action="/favorite/{{ facility.id }}">
+                    <button type="submit" style="background: none; border: none; font-size: 2em; cursor: pointer;">
+                        {% if is_favorite %}❤️{% else %}🤍{% endif %}
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+
+
+        <!-- Адрес и район -->
+        <div class="info-section">
+            <h3>📍 Расположение</h3>
+            <div class="info-grid">
+                <div class="info-label">Адрес:</div>
+                <div class="info-value">{{ facility.address or 'не указан' }}</div>
+
+                <div class="info-label">Округ:</div>
+                <div class="info-value">{{ facility.adm_area or 'не указан' }}</div>
+
+                <div class="info-label">Район:</div>
+                <div class="info-value">{{ facility.district or 'не указан' }}</div>
+            </div>
+        </div>
+
+        <!-- Виды спорта -->
+        {% if facility.services %}
+        <div class="info-section">
+            <h3>⚽ Виды спорта</h3>
+            <div class="services-list">
+                {% for sport in facility.services %}
+                <span class="service-tag">{{ sport }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Доступная среда -->
+        <div class="info-section">
+            <h3>♿ Доступная среда</h3>
+            <div class="info-grid">
+                <div class="info-label">Для колясочников:</div>
+                <div class="info-value">
+                    {% if facility.available_k == 'полностью' %}
+                        <span class="availability-badge available-full">✅ Полностью доступно</span>
+                    {% elif facility.available_k == 'частично' %}
+                        <span class="availability-badge available-partial">⚠️ Частично доступно</span>
+                    {% elif facility.available_k == 'недоступно' %}
+                        <span class="availability-badge available-none">❌ Недоступно</span>
+                    {% else %}
+                        не указано
+                    {% endif %}
+                </div>
+
+                <div class="info-label">Для слабовидящих:</div>
+                <div class="info-value">
+                    {% if facility.available_z == 'полностью' %}
+                        <span class="availability-badge available-full">✅ Полностью доступно</span>
+                    {% elif facility.available_z == 'частично' %}
+                        <span class="availability-badge available-partial">⚠️ Частично доступно</span>
+                    {% elif facility.available_z == 'недоступно' %}
+                        <span class="availability-badge available-none">❌ Недоступно</span>
+                    {% else %}
+                        не указано
+                    {% endif %}
+                </div>
+
+                <div class="info-label">Для слабослышащих:</div>
+                <div class="info-value">
+                    {% if facility.available_s == 'полностью' %}
+                        <span class="availability-badge available-full">✅ Полностью доступно</span>
+                    {% elif facility.available_s == 'частично' %}
+                        <span class="availability-badge available-partial">⚠️ Частично доступно</span>
+                    {% elif facility.available_s == 'недоступно' %}
+                        <span class="availability-badge available-none">❌ Недоступно</span>
+                    {% else %}
+                        не указано
+                    {% endif %}
+                </div>
+
+                <div class="info-label">Для ментальных особенностей:</div>
+                <div class="info-value">
+                    {% if facility.available_o == 'полностью' %}
+                        <span class="availability-badge available-full">✅ Полностью доступно</span>
+                    {% elif facility.available_o == 'частично' %}
+                        <span class="availability-badge available-partial">⚠️ Частично доступно</span>
+                    {% elif facility.available_o == 'недоступно' %}
+                        <span class="availability-badge available-none">❌ Недоступно</span>
+                    {% else %}
+                        не указано
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Часы работы -->
+        {% if facility.working_hours %}
+        <div class="info-section">
+            <h3>🕒 Часы работы</h3>
+            <div class="working-hours">{{ facility.working_hours|safe }}</div>
+        </div>
+        {% endif %}
+
+        <!-- Контакты -->
+        {% if facility.phone or facility.email or facility.website %}
+        <div class="info-section">
+            <h3>📞 Контакты</h3>
+            <div class="info-grid">
+                {% if facility.phone %}
+                <div class="info-label">Телефон:</div>
+                <div class="info-value">{{ facility.phone }}</div>
+                {% endif %}
+
+                {% if facility.email %}
+                <div class="info-label">Email:</div>
+                <div class="info-value">{{ facility.email }}</div>
+                {% endif %}
+
+                {% if facility.website %}
+                <div class="info-label">Сайт:</div>
+                <div class="info-value"><a href="{{ facility.website }}" target="_blank">{{ facility.website }}</a></div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Карта -->
+        {% if facility.latitude and facility.longitude %}
+        <div class="info-section">
+            <h3>🗺 Карта</h3>
+            <div class="map-container">
+                <iframe
+                    width="100%"
+                    height="100%"
+                    frameborder="0"
+                    style="border:0"
+                    src="https://www.openstreetmap.org/export/embed.html?bbox={{ facility.longitude|float - 0.01 }}%2C{{ facility.latitude|float - 0.01 }}%2C{{ facility.longitude|float + 0.01 }}%2C{{ facility.latitude|float + 0.01 }}&amp;layer=mapnik&amp;marker={{ facility.latitude|float }}%2C{{ facility.longitude|float }}"
+                    allowfullscreen>
+                </iframe>
+            </div>
+            <p style="text-align: center; margin-top: 5px;">
+                <a href="https://www.openstreetmap.org/?mlat={{ facility.latitude }}&mlon={{ facility.longitude }}#map=17/{{ facility.latitude }}/{{ facility.longitude }}" target="_blank">
+                    Открыть в OpenStreetMap
+                </a>
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
