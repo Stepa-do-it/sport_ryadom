@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Спорт рядом - Поиск спортивных объектов</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .filter-panel {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .filter-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .filter-group input, .filter-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            height: 38px;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        .compare-button {
+            background: #27ae60;
+            padding: 12px 30px;
+            font-size: 1.1em;
+        }
+        .compare-button:hover {
+            background: #219a52;
+        }
+        .results-info {
+            margin: 20px 0;
+            color: #7f8c8d;
+        }
+        .facility-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        .facility-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .facility-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .facility-card h3 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+        }
+        .facility-card h3 a {
+            color: #2c3e50;
+            text-decoration: none;
+        }
+        .facility-card h3 a:hover {
+            color: #3498db;
+        }
+        .facility-card p {
+            margin: 8px 0;
+            color: #34495e;
+        }
+        .available-full {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        .available-partial {
+            color: #f39c12;
+            font-weight: bold;
+        }
+        .available-none {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            background: #ecf0f1;
+            color: #7f8c8d;
+        }
+        .compare-hint {
+            margin-left: 15px;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div style="position: fixed; top: 20px; right: 20px;
+                            background: {% if category == 'error' %}#e74c3c{% else %}#27ae60{% endif %};
+                            color: white; padding: 15px 25px; border-radius: 8px;
+                            box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <div class="container">
+        <!-- Навигация -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h1 style="margin: 0;">🏟 Спорт рядом</h1>
+            <div style="display: flex; gap: 15px;">
+                {% if current_user.is_authenticated %}
+                    <a href="/profile" style="color: #3498db; text-decoration: none; font-weight: bold;">👤 {{ current_user.first_name }}</a>
+                    <a href="/logout" style="color: #e74c3c; text-decoration: none;">🚪 Выйти</a>
+                {% else %}
+                    <a href="/login" style="color: #3498db; text-decoration: none;">🔑 Войти</a>
+                    <a href="/register" style="color: #3498db; text-decoration: none;">📝 Регистрация</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="filter-panel">
+            <h3>🔍 Поиск и фильтры</h3>
+            <form method="GET" action="/">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label>Название объекта</label>
+                        <input type="text" name="name" placeholder="Введите название..." value="{{ search_name or '' }}">
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Вид спорта</label>
+                        <select name="sport">
+                            <option value="">Все виды спорта</option>
+                            {% for sport in sports %}
+                            <option value="{{ sport }}" {% if sport == selected_sport %}selected{% endif %}>{{ sport }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Доступность для колясок</label>
+                        <select name="available">
+                            <option value="">Любая</option>
+                            <option value="полностью">✅ Полностью доступно</option>
+                            <option value="частично">⚠️ Частично доступно</option>
+                            <option value="недоступно">❌ Недоступно</option>
+                        </select>
+                    </div>
+
+                    <!-- НОВЫЙ ФИЛЬТР ПО РАЙОНУ -->
+                    <div class="filter-group">
+                        <label>Район</label>
+                        <select name="district">
+                            <option value="">Все районы</option>
+                            {% for district in districts %}
+                            <option value="{{ district }}" {% if district == selected_district %}selected{% endif %}>{{ district }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <button type="submit">Применить фильтры</button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Кнопка сравнения наверху -->
+            <div style="margin-top: 20px; text-align: left; border-top: 1px solid #ddd; padding-top: 20px;">
+                <button type="submit" form="compare-form" class="compare-button">📊 Сравнить выбранные объекты (2-3)</button>
+                <span class="compare-hint">✓ Отметьте галочками объекты для сравнения</span>
+            </div>
+        </div>
+
+        <div class="results-info">
+            <span class="badge">Найдено объектов: {{ facilities|length }}</span>
+            {% if search_name or selected_sport or selected_available %}
+                <span class="badge">Фильтры применены</span>
+            {% endif %}
+        </div>
+
+        <!-- Список объектов с чекбоксами -->
+        <form method="GET" action="/compare" id="compare-form">
+            <div class="facility-grid">
+                {% for facility in facilities %}
+                <div class="facility-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3><a href="/facility/{{ facility.id }}">{{ facility.name }}</a></h3>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="ids" value="{{ facility.id }}">
+                            <span>Сравнить</span>
+                        </label>
+                    </div>
+                    <p>📍 {{ facility.address }}</p>
+                    <p>🏘 Район: {{ facility.district or 'не указан' }}</p>
+                    <p>♿ Доступность:
+                        {% if facility.available_k == 'полностью' %}
+                            <span class="available-full">✅ Полностью</span>
+                        {% elif facility.available_k == 'частично' %}
+                            <span class="available-partial">⚠️ Частично</span>
+                        {% elif facility.available_k == 'недоступно' %}
+                            <span class="available-none">❌ Недоступно</span>
+                        {% else %}
+                            не указано
+                        {% endif %}
+                    </p>
+                </div>
+                {% else %}
+                <p>Ничего не найдено. Попробуйте изменить фильтры.</p>
+                {% endfor %}
+            </div>
+        </form>
+    </div>
+</body>
+</html>
